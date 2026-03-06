@@ -10,7 +10,7 @@
     html, body {
       margin: 0;
       height: 100%;
-      background: #d9cfbf;
+      background: #ffffff;
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
@@ -18,71 +18,35 @@
     model-viewer {
       width: 100%;
       height: 100vh;
-      background:
-        radial-gradient(circle at 50% 35%, #e8dfd2 0%, #d8cebe 45%, #c9bda9 100%);
-      --poster-color: #d9cfbf;
-    }
-
-    #msg {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      z-index: 10;
-      background: rgba(255,255,255,0.75);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #333;
-      backdrop-filter: blur(4px);
+      background: #ffffff;
+      --poster-color: #ffffff;
     }
   </style>
 </head>
 <body>
 
-  <div id="msg">Cargando...</div>
-
   <model-viewer
-    id="viewer"
     src="./cabana-tusa.glb"
-
     camera-controls
     auto-rotate
     auto-rotate-delay="0"
     rotation-per-second="8deg"
 
-    shadow-intensity="1.1"
-    shadow-softness="0.95"
-    exposure="1.15"
+    shadow-intensity="1.6"
+    shadow-softness="0.7"
+    exposure="0.95"
 
-    environment-image="neutral"
+    environment-image="legacy"
     tone-mapping="aces"
 
     camera-orbit="35deg 68deg 140%"
     min-camera-orbit="auto 55deg auto"
     max-camera-orbit="auto 85deg auto"
-
     field-of-view="28deg"
 
     interaction-prompt="none"
     disable-pan>
   </model-viewer>
-
-  <script>
-    const msg = document.getElementById('msg');
-    const viewer = document.getElementById('viewer');
-
-    viewer.addEventListener('load', () => {
-      msg.textContent = 'Modelo cargado correctamente';
-      setTimeout(() => {
-        msg.style.display = 'none';
-      }, 1600);
-    });
-
-    viewer.addEventListener('error', (e) => {
-      console.error('Error del modelo:', e);
-      msg.textContent = 'Error: no se pudo cargar el modelo';
-    });
-  </script>
 
 </body>
 </html>
