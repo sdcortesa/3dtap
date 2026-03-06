@@ -3,51 +3,214 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cabaña Tusa</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <title>Cabaña Tusa 3D</title>
 
   <style>
     html, body {
       margin: 0;
+      width: 100%;
       height: 100%;
-      background: #ffffff;
       overflow: hidden;
+      background: #d8d0c3;
       font-family: Arial, sans-serif;
     }
 
-    model-viewer {
-      width: 100%;
+    #container {
+      width: 100vw;
       height: 100vh;
-      background: #ffffff;
-      --poster-color: #ffffff;
+      position: relative;
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(216, 208, 195, 0.94);
+      color: #333;
+      z-index: 10;
+      font-size: 14px;
+      letter-spacing: 0.4px;
     }
   </style>
+
+  <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
+  <div id="container">
+    <div id="loading">Cargando modelo...</div>
+  </div>
 
-  <model-viewer
-    src="./cabana-tusa.glb"
-    camera-controls
-    auto-rotate
-    auto-rotate-delay="0"
-    rotation-per-second="6deg"
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    environment-image="commerce"
-    skybox-image=""
-    tone-mapping="aces"
-    exposure="0.92"
+    const container = document.getElementById('container');
+    const loading = document.getElementById('loading');
 
-    shadow-intensity="1.85"
-    shadow-softness="1.25"
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd8d0c3);
 
-    camera-orbit="35deg 68deg 140%"
-    min-camera-orbit="auto 55deg auto"
-    max-camera-orbit="auto 85deg auto"
-    field-of-view="28deg"
+    const camera = new THREE.PerspectiveCamera(
+      32,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      5000
+    );
 
-    interaction-prompt="none"
-    disable-pan>
-  </model-viewer>
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false
+    });
 
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 500;
+
+    // Luz ambiente suave
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+
+    // Luz hemisférica para volumen general
+    const hemiLight = new THREE.HemisphereLight(0xf6f3ee, 0xb8ae9f, 0.95);
+    scene.add(hemiLight);
+
+    // Luz principal direccional, suave y lateral
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.6);
+    keyLight.position.set(18, 22, 14);
+    keyLight.castShadow = true;
+
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 200;
+    keyLight.shadow.camera.left = -40;
+    keyLight.shadow.camera.right = 40;
+    keyLight.shadow.camera.top = 40;
+    keyLight.shadow.camera.bottom = -40;
+    keyLight.shadow.bias = -0.0003;
+    keyLight.shadow.radius = 6;
+
+    scene.add(keyLight);
+
+    // Luz de relleno desde el lado opuesto
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    fillLight.position.set(-10, 8, -12);
+    scene.add(fillLight);
+
+    // Luz trasera muy suave para separar planos
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    rimLight.position.set(-6, 10, 14);
+    scene.add(rimLight);
+
+    // Plano receptor de sombra
+    const shadowPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(500, 500),
+      new THREE.ShadowMaterial({ opacity: 0.22 })
+    );
+    shadowPlane.rotation.x = -Math.PI / 2;
+    shadowPlane.position.y = -0.02;
+    shadowPlane.receiveShadow = true;
+    scene.add(shadowPlane);
+
+    const loader = new GLTFLoader();
+
+    loader.load(
+      './cabana-tusa.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child.material) {
+              child.material.side = THREE.FrontSide;
+              if ('envMapIntensity' in child.material) {
+                child.material.envMapIntensity = 0.7;
+              }
+            }
+          }
+        });
+
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        model.position.x -= center.x;
+        model.position.y -= box.min.y;
+        model.position.z -= center.z;
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+
+        const fov = camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 1.65;
+
+        camera.position.set(cameraZ * 0.95, cameraZ * 0.62, cameraZ * 1.02);
+
+        camera.near = Math.max(0.1, maxDim / 100);
+        camera.far = Math.max(5000, maxDim * 100);
+        camera.updateProjectionMatrix();
+
+        controls.target.set(0, size.y * 0.22, 0);
+        controls.update();
+
+        // Ajustar shadow plane a la base del modelo
+        shadowPlane.position.y = 0;
+
+        loading.style.display = 'none';
+      },
+      (xhr) => {
+        if (xhr.total) {
+          const percent = Math.round((xhr.loaded / xhr.total) * 100);
+          loading.textContent = `Cargando modelo... ${percent}%`;
+        }
+      },
+      (error) => {
+        console.error('Error cargando el modelo:', error);
+        loading.textContent = 'No se pudo cargar el modelo.';
+      }
+    );
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
