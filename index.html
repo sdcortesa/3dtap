@@ -3,172 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cabaña Tusa 3D</title>
-
+  <title>Cabaña Tusa</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     html, body {
       margin: 0;
-      width: 100%;
       height: 100%;
-      overflow: hidden;
       background: #e9e1d3;
-      font-family: Arial, sans-serif;
     }
-
-    #container {
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-    }
-
-    #loading {
+    #msg {
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(233, 225, 211, 0.92);
-      color: #222;
+      top: 12px;
+      left: 12px;
       z-index: 10;
-      font-size: 14px;
-      letter-spacing: 0.4px;
+      background: rgba(255,255,255,.85);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font: 14px Arial, sans-serif;
+    }
+    model-viewer {
+      width: 100%;
+      height: 100vh;
+      background: #e9e1d3;
     }
   </style>
-
-  <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
 <body>
-  <div id="container">
-    <div id="loading">Cargando modelo...</div>
-  </div>
+  <div id="msg">Cargando...</div>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  <model-viewer
+    id="viewer"
+    src="./cabana-tusa.glb"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    exposure="1">
+  </model-viewer>
 
-    const container = document.getElementById('container');
-    const loading = document.getElementById('loading');
+  <script>
+    const msg = document.getElementById('msg');
+    const viewer = document.getElementById('viewer');
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe9e1d3);
-
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      5000
-    );
-    camera.position.set(8, 5, 8);
-
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false
+    viewer.addEventListener('load', () => {
+      msg.textContent = 'Modelo cargado correctamente';
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    container.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enablePan = true;
-    controls.minDistance = 0.5;
-    controls.maxDistance = 2000;
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    dirLight.position.set(10, 12, 8);
-    dirLight.castShadow = true;
-    scene.add(dirLight);
-
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    fillLight.position.set(-8, 6, -6);
-    scene.add(fillLight);
-
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(500, 500),
-      new THREE.ShadowMaterial({ opacity: 0.10 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.01;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    const loader = new GLTFLoader();
-
-    loader.load(
-      './cabana-tusa.glb',
-      (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-
-        model.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-
-        model.position.x -= center.x;
-        model.position.y -= box.min.y;
-        model.position.z -= center.z;
-
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const fov = camera.fov * (Math.PI / 180);
-        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-        cameraZ *= 1.8;
-
-        camera.position.set(cameraZ, cameraZ * 0.65, cameraZ);
-        camera.near = Math.max(0.1, maxDim / 100);
-        camera.far = Math.max(5000, maxDim * 100);
-        camera.updateProjectionMatrix();
-
-        controls.target.set(0, size.y * 0.35, 0);
-        controls.update();
-
-        loading.style.display = 'none';
-      },
-      (xhr) => {
-        if (xhr.total) {
-          const percent = Math.round((xhr.loaded / xhr.total) * 100);
-          loading.textContent = `Cargando modelo... ${percent}%`;
-        }
-      },
-      (error) => {
-        console.error('Error cargando el modelo:', error);
-        loading.textContent = 'No se pudo cargar el modelo.';
-      }
-    );
-
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-
-    animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    viewer.addEventListener('error', (e) => {
+      console.error('Error del modelo:', e);
+      msg.textContent = 'Error: no se pudo cargar cabana-tusa.glb';
     });
   </script>
 </body>
