@@ -12,6 +12,7 @@
       height: 100%;
       background: #ffffff;
       overflow: hidden;
+      font-family: Arial, sans-serif;
     }
 
     model-viewer {
@@ -29,16 +30,20 @@
     camera-controls
     auto-rotate
     auto-rotate-delay="0"
-    rotation-per-second="6deg"
-    environment-image="commerce"
+    rotation-per-second="8deg"
+
+    shadow-intensity="1.6"
+    shadow-softness="0.7"
+    exposure="0.95"
+
+    environment-image="legacy"
     tone-mapping="aces"
-    exposure="0.88"
-    shadow-intensity="1.9"
-    shadow-softness="1.35"
+
     camera-orbit="35deg 68deg 140%"
     min-camera-orbit="auto 55deg auto"
     max-camera-orbit="auto 85deg auto"
     field-of-view="28deg"
+
     interaction-prompt="none"
     disable-pan>
   </model-viewer>
