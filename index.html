@@ -5,39 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cabaña Tusa</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
   <style>
     html, body {
       margin: 0;
       height: 100%;
-      background: #e9e1d3;
+      background: #d9cfbf;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
     }
-    #msg {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 10;
-      background: rgba(255,255,255,.85);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font: 14px Arial, sans-serif;
-    }
+
     model-viewer {
       width: 100%;
       height: 100vh;
-      background: #FFFFFF;
+      background:
+        radial-gradient(circle at 50% 35%, #e8dfd2 0%, #d8cebe 45%, #c9bda9 100%);
+      --poster-color: #d9cfbf;
+    }
+
+    #msg {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      background: rgba(255,255,255,0.75);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #333;
+      backdrop-filter: blur(4px);
     }
   </style>
 </head>
 <body>
+
   <div id="msg">Cargando...</div>
 
   <model-viewer
     id="viewer"
     src="./cabana-tusa.glb"
+
     camera-controls
     auto-rotate
-    shadow-intensity="1"
-    exposure="1">
+    auto-rotate-delay="0"
+    rotation-per-second="8deg"
+
+    shadow-intensity="1.1"
+    shadow-softness="0.95"
+    exposure="1.15"
+
+    environment-image="neutral"
+    tone-mapping="aces"
+
+    camera-orbit="35deg 68deg 140%"
+    min-camera-orbit="auto 55deg auto"
+    max-camera-orbit="auto 85deg auto"
+
+    field-of-view="28deg"
+
+    interaction-prompt="none"
+    disable-pan>
   </model-viewer>
 
   <script>
@@ -46,13 +73,16 @@
 
     viewer.addEventListener('load', () => {
       msg.textContent = 'Modelo cargado correctamente';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 1600);
     });
 
     viewer.addEventListener('error', (e) => {
       console.error('Error del modelo:', e);
-      msg.textContent = 'Error: no se pudo cargar cabana-tusa.glb';
+      msg.textContent = 'Error: no se pudo cargar el modelo';
     });
   </script>
+
 </body>
 </html>
-
