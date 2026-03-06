@@ -167,18 +167,27 @@
         model.position.z -= center.z;
 
         const maxDim = Math.max(size.x, size.y, size.z);
-
+        const minDim = Math.min(size.x, size.z);
+        
         const fov = camera.fov * (Math.PI / 180);
-        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-        cameraZ *= 1.65;
-
-        camera.position.set(cameraZ * 0.95, cameraZ * 0.62, cameraZ * 1.02);
-
-        camera.near = Math.max(0.1, maxDim / 100);
-        camera.far = Math.max(5000, maxDim * 100);
+        let cameraDistance = Math.abs((maxDim * 0.75) / Math.tan(fov / 2));
+        cameraDistance *= 2.2;
+        
+        // vista axonométrica más abierta
+        camera.position.set(
+          cameraDistance * 1.15,
+          cameraDistance * 0.72,
+          cameraDistance * 1.1
+        );
+        
+        camera.near = Math.max(0.1, maxDim / 200);
+        camera.far = Math.max(8000, maxDim * 200);
         camera.updateProjectionMatrix();
-
-        controls.target.set(0, size.y * 0.22, 0);
+        
+        // apuntar más al centro general del volumen
+        controls.target.set(0, size.y * 0.18, 0);
+        controls.minDistance = maxDim * 0.6;
+        controls.maxDistance = maxDim * 8;
         controls.update();
 
         // Ajustar shadow plane a la base del modelo
@@ -214,3 +223,4 @@
   </script>
 </body>
 </html>
+
