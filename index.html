@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cabaña Tusa</title>
+  <title>Casas TAP</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
@@ -30,11 +30,28 @@
       transition: opacity 0.5s ease;
       opacity: 1;
     }
+
+    .titulo-modelo {
+      position: absolute;
+      top: 28px;
+      left: 32px;
+      z-index: 10;
+      font-size: 22px;
+      font-weight: 600;
+      color: #111;
+      letter-spacing: 0.2px;
+      background: rgba(255,255,255,0.72);
+      padding: 10px 14px;
+      border-radius: 10px;
+      backdrop-filter: blur(6px);
+    }
   </style>
 </head>
 <body>
 
   <div class="viewer-wrap">
+    <div id="tituloModelo" class="titulo-modelo">Casa 1</div>
+
     <model-viewer
       id="viewer"
       src="./cabana-tusa.glb"
@@ -51,9 +68,9 @@
       environment-image="neutral"
       tone-mapping="aces"
 
-      camera-orbit="215deg 68deg 80%"
-      min-camera-orbit="auto 55deg 80%"
-      max-camera-orbit="auto 85deg 80%"
+      camera-orbit="215deg 82deg 90%"
+      min-camera-orbit="auto 65deg 90%"
+      max-camera-orbit="auto 85deg 90%"
       field-of-view="28deg"
 
       interaction-prompt="none"
@@ -63,7 +80,19 @@
 
   <script>
     const viewer = document.getElementById('viewer');
-    const modelos = ['./cabana-tusa.glb', './cabana-2.glb'];
+    const tituloModelo = document.getElementById('tituloModelo');
+
+    const modelos = [
+      {
+        archivo: './cabana-tusa.glb',
+        nombre: 'Cabaña Tusa'
+      },
+      {
+        archivo: './cabana-2.glb',
+        nombre: 'Cabaña Pasiaje'
+      }
+    ];
+
     let indiceActual = 0;
     let cambiando = false;
 
@@ -75,7 +104,9 @@
 
       setTimeout(() => {
         indiceActual = (indiceActual + 1) % modelos.length;
-        viewer.src = modelos[indiceActual];
+
+        viewer.src = modelos[indiceActual].archivo;
+        tituloModelo.textContent = modelos[indiceActual].nombre;
 
         viewer.addEventListener('load', function onLoad() {
           viewer.removeEventListener('load', onLoad);
@@ -87,12 +118,12 @@
           viewer.removeEventListener('error', onError);
           viewer.style.opacity = '1';
           cambiando = false;
-          console.error('No se pudo cargar el modelo:', modelos[indiceActual]);
+          console.error('No se pudo cargar el modelo:', modelos[indiceActual].archivo);
         });
       }, 300);
     }
 
-    setInterval(cambiarModeloAutomatico, 12000);
+    setInterval(cambiarModeloAutomatico, 6000);
   </script>
 
 </body>
