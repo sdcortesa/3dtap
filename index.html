@@ -15,40 +15,85 @@
       font-family: Arial, sans-serif;
     }
 
-    model-viewer {
+    .viewer-wrap {
+      position: relative;
       width: 100%;
       height: 100vh;
       background: #ffffff;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
       --poster-color: #ffffff;
+      transition: opacity 0.5s ease;
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
-  <model-viewer
-    src="./cabana-tusa.glb"
-    camera-controls
-    disable-zoom
-    auto-rotate
-    auto-rotate-delay="0"
-    rotation-per-second="8deg"
+  <div class="viewer-wrap">
+    <model-viewer
+      id="viewer"
+      src="./cabana-tusa.glb"
+      camera-controls
+      disable-zoom
+      auto-rotate
+      auto-rotate-delay="0"
+      rotation-per-second="8deg"
 
-    shadow-intensity="0.9"
-    shadow-softness="0.8"
-    exposure="1.1"
+      shadow-intensity="1.0"
+      shadow-softness="0.8"
+      exposure="1.0"
 
-    environment-image="neutral"
-    tone-mapping="aces"
+      environment-image="neutral"
+      tone-mapping="aces"
 
-    camera-orbit="215deg 68deg 80%"
-    min-camera-orbit="auto 55deg 80%"
-    max-camera-orbit="auto 85deg 80%"
-    field-of-view="28deg"
+      camera-orbit="215deg 68deg 110%"
+      min-camera-orbit="auto 55deg 110%"
+      max-camera-orbit="auto 85deg 110%"
+      field-of-view="28deg"
 
-    interaction-prompt="none"
-    disable-pan>
-  </model-viewer>
+      interaction-prompt="none"
+      disable-pan>
+    </model-viewer>
+  </div>
+
+  <script>
+    const viewer = document.getElementById('viewer');
+    const modelos = ['./cabana-tusa.glb', './cabana-2.glb'];
+    let indiceActual = 0;
+    let cambiando = false;
+
+    function cambiarModeloAutomatico() {
+      if (cambiando) return;
+      cambiando = true;
+
+      viewer.style.opacity = '0';
+
+      setTimeout(() => {
+        indiceActual = (indiceActual + 1) % modelos.length;
+        viewer.src = modelos[indiceActual];
+
+        viewer.addEventListener('load', function onLoad() {
+          viewer.removeEventListener('load', onLoad);
+          viewer.style.opacity = '1';
+          cambiando = false;
+        });
+
+        viewer.addEventListener('error', function onError() {
+          viewer.removeEventListener('error', onError);
+          viewer.style.opacity = '1';
+          cambiando = false;
+          console.error('No se pudo cargar el modelo:', modelos[indiceActual]);
+        });
+      }, 300);
+    }
+
+    setInterval(cambiarModeloAutomatico, 6000);
+  </script>
 
 </body>
 </html>
-
